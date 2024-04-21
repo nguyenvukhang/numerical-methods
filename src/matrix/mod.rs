@@ -16,15 +16,12 @@ pub use matrix_traits::*;
 #[allow(unused)]
 pub use scalar_traits::*;
 
-#[cfg(test)]
-use crate::assert::*;
 use crate::na;
+use crate::prelude::*;
 
 use rand::Rng;
 
 use std::ops::RangeInclusive;
-
-pub(crate) type R = f64;
 
 /// 1-indexed column-major matrix data structure.
 ///
@@ -242,7 +239,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
 #[test]
 fn solve_qr_test() {
-    for _ in 0..100 {
+    for _ in 0..REPS {
         let A = Mat::<6, 4>::rand();
         let b = Mat::<6, 1>::rand();
         let x = A.solve_lls(&b);

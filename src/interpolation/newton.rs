@@ -52,7 +52,7 @@ fn newton_interpolation_test() {
     let pl = vec![2., 0., -4., 3.];
     let pl = |x| horners(&pl, x);
 
-    for _ in 0..100 {
+    for _ in 0..REPS {
         let rand = Mat::<6, 1>::rand();
         for i in rand.row_iter() {
             let x = rand[i];

@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use crate::matrix::*;
+use crate::prelude::{Mat, RealTraits, R};
 
 /// Asserts that two matrices are the same, with an absolute tolerance.
 pub fn assert_eq_mat<const M: usize, const N: usize, A>(

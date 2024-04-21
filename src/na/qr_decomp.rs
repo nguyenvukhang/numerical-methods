@@ -44,7 +44,7 @@ pub fn householder<const M: usize, const N: usize>(
 
 #[test]
 fn householder_refl_test() {
-    for _ in 0..100 {
+    for _ in 0..REPS {
         let A = Mat::<6, 6>::rand();
         let (Q, R) = householder(&A);
         assert_eq_mat(&Q * R, A, 1e-10);

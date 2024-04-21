@@ -4,9 +4,6 @@ pub mod qr_decomp;
 
 use crate::prelude::*;
 
-#[cfg(test)]
-const REPS: usize = 5000;
-
 /// Clones the matrix, and writes the Cholesky factor into the
 /// lower-triangular half of the matrix.
 ///
