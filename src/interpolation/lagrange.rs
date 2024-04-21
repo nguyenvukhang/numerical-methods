@@ -1,5 +1,5 @@
-use super::*;
-use crate::matrix::*;
+use super::traits::Interpolator;
+use crate::prelude::*;
 
 pub struct LagrangeInterpolation<const N: usize> {
     xs: Mat<N, 1>,

@@ -1,4 +1,4 @@
-use crate::matrix::*;
+use crate::prelude::*;
 
 pub trait Interpolator<const N: usize> {
     /// Evaluates the `k`-th basis vector at `x`.

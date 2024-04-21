@@ -1,9 +1,8 @@
-use super::*;
-use crate::matrix::*;
+use super::traits::Interpolator;
+use crate::prelude::*;
 
 pub struct NewtonInterpolation<const N: usize> {
     xs: Mat<N, 1>,
-    ys: Mat<N, 1>,
     coeffs: Mat<N, 1>,
 }
 
@@ -27,11 +26,7 @@ impl<const N: usize> NewtonInterpolation<N> {
             xs.has_unique_elements(),
             "Can't do interpolation with non-unique x-values"
         );
-        Self {
-            xs: xs.clone(),
-            ys: ys.clone(),
-            coeffs: divided_differences(xs, ys),
-        }
+        Self { xs: xs.clone(), coeffs: divided_differences(xs, ys) }
     }
 }
 

@@ -2,11 +2,10 @@ mod lagrange;
 mod newton;
 mod traits;
 
-use lagrange::*;
-use newton::*;
-use traits::*;
+pub use lagrange::*;
+pub use newton::*;
 
-use crate::matrix::*;
+use crate::prelude::*;
 
 #[allow(unused)]
 fn demo() {

@@ -1,8 +1,8 @@
 // Numerical Analysis functions
 
-use crate::matrix::*;
-#[cfg(test)]
-use crate::assert::*;
+pub mod qr_decomp;
+
+use crate::prelude::*;
 
 #[cfg(test)]
 const REPS: usize = 5000;

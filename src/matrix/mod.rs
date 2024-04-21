@@ -2,7 +2,6 @@ mod algebra;
 mod column_traits;
 mod inits;
 mod matrix_traits;
-mod qr_decomposition;
 mod scalar_traits;
 mod square_matrix;
 
@@ -19,6 +18,7 @@ pub use scalar_traits::*;
 
 #[cfg(test)]
 use crate::assert::*;
+use crate::na;
 
 use rand::Rng;
 
@@ -102,9 +102,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Extract the `j`-th column of the matrix.
     pub fn col(&self, j: usize) -> Mat<M, 1> {
-        Mat {
-            data: [self.data[j - 1]],
-        }
+        Mat { data: [self.data[j - 1]] }
     }
 
     /// Set the `i`-th row of the matrix.
@@ -223,6 +221,12 @@ impl<const M: usize, const N: usize> Mat<M, N> {
             }
         }
         false
+    }
+
+    /// Execute a QR decomposition via Householder reflections.
+    /// This requires M ≥ N.
+    pub fn qr_householder(&self) -> (Mat<M, M>, Mat<M, N>) {
+        na::qr_decomp::householder(self)
     }
 
     /// Solve linear-least-squares.
