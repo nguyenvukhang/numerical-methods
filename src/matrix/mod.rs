@@ -17,6 +17,9 @@ pub use matrix_traits::*;
 #[allow(unused)]
 pub use scalar_traits::*;
 
+#[cfg(test)]
+use crate::assert::*;
+
 use rand::Rng;
 
 use std::ops::RangeInclusive;
@@ -99,7 +102,9 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Extract the `j`-th column of the matrix.
     pub fn col(&self, j: usize) -> Mat<M, 1> {
-        Mat { data: [self.data[j - 1]] }
+        Mat {
+            data: [self.data[j - 1]],
+        }
     }
 
     /// Set the `i`-th row of the matrix.
@@ -228,5 +233,16 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         let R1 = R.top_n_rows::<N>();
         let v1 = v.top_n_rows::<N>();
         R1.backward_sub(&v1)
+    }
+}
+
+#[test]
+fn solve_qr_test() {
+    for _ in 0..100 {
+        let A = Mat::<6, 4>::rand();
+        let b = Mat::<6, 1>::rand();
+        let x = A.solve_lls(&b);
+        let AT = A.transpose();
+        assert_eq_mat(&AT * A * x, &AT * b, 1e-10);
     }
 }

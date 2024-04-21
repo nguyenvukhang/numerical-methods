@@ -124,15 +124,6 @@ fn horners_test() {
     test!([1.2], 91.1);
 }
 
-#[test]
-fn householder_refl_test() {
-    for _ in 0..REPS {
-        let A = Mat::<6, 6>::rand();
-        let (Q, R) = A.qr_householder();
-        assert_eq_mat(&Q * R, A, 1e-10);
-    }
-}
-
 pub fn backward_sub<const N: usize>(A: &Mat<N, N>, b: &Mat<N, 1>) -> Mat<N, 1> {
     assert!(A.is_upper_triangular(), "A needs to be upper-triangular:\n{A:?}");
     let mut x = b.clone();
@@ -155,17 +146,6 @@ fn backward_sub_test() {
         let b = Mat::<N, 1>::rand();
         let x = backward_sub(&A, &b);
         assert_eq_mat(A * x, b, 1e-8);
-    }
-}
-
-#[test]
-fn solve_qr_test() {
-    for _ in 0..REPS {
-        let A = Mat::<6, 4>::rand();
-        let b = Mat::<6, 1>::rand();
-        let x = A.solve_lls(&b);
-        let AT = A.transpose();
-        assert_eq_mat(&AT * A * x, &AT * b, 1e-10);
     }
 }
 

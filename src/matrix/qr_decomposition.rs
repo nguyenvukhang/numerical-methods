@@ -1,5 +1,8 @@
 use super::*;
 
+#[cfg(test)]
+use crate::assert::*;
+
 impl<const M: usize, const N: usize> Mat<M, N> {
     /// Execute a QR decomposition via Householder reflections.
     /// This requires M ≥ N.
@@ -39,5 +42,14 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         }
 
         (Q, R)
+    }
+}
+
+#[test]
+fn householder_refl_test() {
+    for _ in 0..100 {
+        let A = Mat::<6, 6>::rand();
+        let (Q, R) = A.qr_householder();
+        assert_eq_mat(&Q * R, A, 1e-10);
     }
 }
