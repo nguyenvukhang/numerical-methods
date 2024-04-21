@@ -146,17 +146,25 @@ fn backward_sub_test() {
     }
 }
 
-/// Determine the dominant eigenvector of a matrix.
-fn power_iteration<const N: usize>(A: &Mat<N, N>) -> Mat<N, 1> {
-    let mut v = Mat::rand();
+/// Determine the dominant eigenvector of a matrix, and its
+/// corresponding eigenvalue.
+fn power_iteration<const N: usize>(A: &Mat<N, N>) -> (R, Mat<N, 1>) {
+    let mut v = A.col(1);
     loop {
         let mut v2 = A * &v;
         v2.l2_normalize();
         if (&v2 - &v).l2_norm() < 1e-15 {
-            break v;
+            break (v.dot(&(A * &v)), v);
         }
         v = v2;
     }
+}
+
+/// Rayleight Quotient.
+/// Useful for calculating the eigenvalue of `v` when it is known that
+/// it is an eigenvector of `A`.
+fn rayleigh_quotient<const N: usize>(v: &Mat<N, 1>, A: &Mat<N, N>) -> R {
+    v.dot(&(A * v)) / v.dot(v) // = vᵀAv/vᵀv
 }
 
 #[test]
@@ -164,15 +172,8 @@ fn power_iteration_test() {
     const N: usize = 6;
     for _ in 0..REPS {
         let A = Mat::<N, N>::rand();
-        let v = power_iteration(&A);
-        let Av = &A * &v;
-        // assert that Av is a scalar multiple of v.
-        let diff = Av.on_each2(&v, |x, y| x / y);
-        for i in 1..=N {
-            for j in 1..i {
-                assert_eq_tol(diff[i], diff[j], 1e-10);
-            }
-        }
+        let (lambda, v) = power_iteration(&A);
+        assert_eq_mat(&A * &v, lambda * v, 1e-10);
     }
 }
 
@@ -186,4 +187,5 @@ fn demo() {
     horners(&vec![], 1.);
     backward_sub(&A, &b);
     power_iteration(&A);
+    rayleigh_quotient(&b, &A);
 }
