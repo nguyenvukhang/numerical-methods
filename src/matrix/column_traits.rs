@@ -18,6 +18,12 @@ impl<const M: usize> Mat<M, 1> {
         self.dot(self).sqrt()
     }
 
+    /// Normalizes the vector using l2-norm.
+    pub fn l2_normalize(&mut self) {
+        let d = self.l2_norm();
+        self.on_each_mut(|v| v / d);
+    }
+
     /// Converts the column vector into the `k`-th canonical basis
     /// vector. (i.e. the `k`-th column of the identity matrix)
     pub fn canonical_basis(&mut self, k: usize) {

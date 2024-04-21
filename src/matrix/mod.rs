@@ -124,7 +124,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         N
     }
 
-    /// Apply a function element-wise
+    /// Apply a function element-wise, and create a new matrix.
     pub fn on_each<F: FnMut(R) -> R>(&self, mut f: F) -> Self {
         let mut m = Self::new();
         for i in self.row_iter() {
@@ -135,6 +135,16 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         m
     }
 
+    /// Apply a function element-wise.
+    pub fn on_each_mut<F: FnMut(R) -> R>(&mut self, mut f: F) {
+        for i in self.row_iter() {
+            for j in self.col_iter() {
+                self[(i, j)] = f(self[(i, j)]);
+            }
+        }
+    }
+
+    /// Zip up two same-dimesion matrices with a function.
     pub fn on_each2<F: Fn(R, R) -> R>(&self, other: &Self, f: F) -> Self {
         let mut m = Self::new();
         for i in self.row_iter() {

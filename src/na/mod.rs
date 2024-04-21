@@ -146,6 +146,36 @@ fn backward_sub_test() {
     }
 }
 
+/// Determine the dominant eigenvector of a matrix.
+fn power_iteration<const N: usize>(A: &Mat<N, N>) -> Mat<N, 1> {
+    let mut v = Mat::rand();
+    loop {
+        let mut v2 = A * &v;
+        v2.l2_normalize();
+        if (&v2 - &v).l2_norm() < 1e-15 {
+            break v;
+        }
+        v = v2;
+    }
+}
+
+#[test]
+fn power_iteration_test() {
+    const N: usize = 6;
+    for _ in 0..REPS {
+        let A = Mat::<N, N>::rand();
+        let v = power_iteration(&A);
+        let Av = &A * &v;
+        // assert that Av is a scalar multiple of v.
+        let diff = Av.on_each2(&v, |x, y| x / y);
+        for i in 1..=N {
+            for j in 1..i {
+                assert_eq_tol(diff[i], diff[j], 1e-10);
+            }
+        }
+    }
+}
+
 /// The allow_unused sink.
 #[allow(unused)]
 fn demo() {
@@ -155,4 +185,5 @@ fn demo() {
     gram_schmidt(&A);
     horners(&vec![], 1.);
     backward_sub(&A, &b);
+    power_iteration(&A);
 }
