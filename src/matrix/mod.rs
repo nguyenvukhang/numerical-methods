@@ -175,25 +175,35 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         true
     }
 
+    /// Zeros-out entries to become upper triangular.
+    pub fn to_upper_triangular(&mut self) {
+        for i in self.row_iter() {
+            for j in 1..i {
+                self[(i, j)] = 0.;
+            }
+        }
+    }
+
+    /// Zeros-out entries to become upper triangular.
+    pub fn to_lower_triangular(&mut self) {
+        for i in self.row_iter() {
+            for j in i + 1..=N {
+                self[(i, j)] = 0.;
+            }
+        }
+    }
+
     /// Extracts the upper triangular portion of the matrix.
     pub fn upper_triangular(&self) -> Self {
         let mut m = self.clone();
-        for i in self.row_iter() {
-            for j in 1..i {
-                m[(i, j)] = 0.;
-            }
-        }
+        m.to_upper_triangular();
         m
     }
 
     /// Extracts the lower triangular portion of the matrix.
     pub fn lower_triangular(&self) -> Self {
         let mut m = self.clone();
-        for i in self.row_iter() {
-            for j in i + 1..=N {
-                m[(i, j)] = 0.;
-            }
-        }
+        m.to_lower_triangular();
         m
     }
 

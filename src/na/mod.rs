@@ -8,8 +8,7 @@ use crate::prelude::*;
 /// lower-triangular half of the matrix.
 ///
 /// Input matrix MUST be symmetric positive definite.
-pub fn cholesky<const N: usize>(A: &Mat<N, N>) -> Mat<N, N> {
-    let mut A = A.clone();
+pub fn cholesky<const N: usize>(A: &mut Mat<N, N>) {
     for k in 1..N {
         A[(k, k)] = A[(k, k)].sqrt();
         for j in k + 1..=N {
@@ -22,7 +21,6 @@ pub fn cholesky<const N: usize>(A: &Mat<N, N>) -> Mat<N, N> {
         }
     }
     A[(N, N)] = A[(N, N)].sqrt();
-    A
 }
 
 #[test]
@@ -30,7 +28,9 @@ fn cholesky_test() {
     let mut i = 0;
     while i < REPS {
         let A = symmetric_positive_definite::<5>();
-        let L = cholesky(&A).lower_triangular();
+        let mut L = A.clone();
+        cholesky(&mut L);
+        L.to_lower_triangular();
         if L.contains_nan() {
             continue;
         }
@@ -269,7 +269,7 @@ fn rayleigh_quotient_iteration_test() {
 fn demo() {
     let A = Mat::<5, 5>::rand();
     let b = Mat::<5, 1>::rand();
-    cholesky(&A);
+    cholesky(&mut Mat::<1, 1>::zero());
     gram_schmidt(&A);
     horners(&vec![], 1.);
     backward_sub(&A, &b);
