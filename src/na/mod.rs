@@ -10,19 +10,18 @@ use crate::prelude::*;
 /// Input matrix MUST be symmetric positive definite.
 pub fn cholesky<const N: usize>(A: &Mat<N, N>) -> Mat<N, N> {
     let mut A = A.clone();
-    let n = A.dimensions().0;
-    for k in 1..n {
+    for k in 1..N {
         A[(k, k)] = A[(k, k)].sqrt();
-        for j in k + 1..n + 1 {
+        for j in k + 1..=N {
             A[(j, k)] = A[(j, k)] / A[(k, k)];
         }
-        for j in k + 1..n + 1 {
-            for i in j..n + 1 {
+        for j in k + 1..=N {
+            for i in j..=N {
                 A[(i, j)] -= A[(i, k)] * A[(j, k)];
             }
         }
     }
-    A[(n, n)] = A[(n, n)].sqrt();
+    A[(N, N)] = A[(N, N)].sqrt();
     A
 }
 
