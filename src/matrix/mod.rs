@@ -97,6 +97,10 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         m
     }
 
+    pub fn col_raw(&self, j: usize) -> &[R; M] {
+        &self.data[j - 1]
+    }
+
     /// Extract the `j`-th column of the matrix.
     pub fn col(&self, j: usize) -> Mat<M, 1> {
         Mat { data: [self.data[j - 1]] }
@@ -246,7 +250,21 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         R1.backward_sub(&v1)
     }
 
-    /// For column vector, this gives the l2-norm or Euclidean norm.
+    /// For column vectors, this gives the l1-norm or Manhattan
+    /// distance or the Taxicab norm.
+    /// For matrices, this gives the operator's l1-norm.
+    pub fn l1_norm(&self) -> R {
+        let mut max = 0.;
+        for j in 1..=N {
+            let s: R = self.col_raw(j).iter().map(|v| v.abs()).sum();
+            if s > max {
+                max = s;
+            }
+        }
+        max
+    }
+
+    /// For column vectors, this gives the l2-norm or Euclidean norm.
     /// For matrices, this gives the Spectral norm, the square root of
     /// the largest eigenvalue of AᵀA.
     pub fn l2_norm(&self) -> R {
