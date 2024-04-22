@@ -1,4 +1,6 @@
 #![allow(non_snake_case)] // matrices are traditionally written in upper case.
+
+#[macro_use]
 mod assert;
 mod interpolation;
 mod matrix;

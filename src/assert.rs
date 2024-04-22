@@ -2,6 +2,28 @@
 
 use crate::prelude::{Mat, RealTraits, R};
 
+#[macro_export]
+macro_rules! assert_eq_mat {
+    ($l:expr, $r:expr, $tol:expr) => {
+        match (&$l, &$r) {
+            (left, right) => {
+                assert!(
+                    !right.contains_nan(),
+                    "Received matrix contains NaN:\nright: {right}",
+                );
+                assert!(
+                    !left.contains_nan(),
+                    "Received matrix contains NaN:\nleft: {left}",
+                );
+                assert!(
+                    right.eq(left, $tol),
+                    "Matrices do not match:\nleft: {left}\nright: {right}",
+                );
+            }
+        }
+    };
+}
+
 /// Asserts that two matrices are the same, with an absolute tolerance.
 pub fn assert_eq_mat<const M: usize, const N: usize, A>(
     left: A,
@@ -13,15 +35,15 @@ pub fn assert_eq_mat<const M: usize, const N: usize, A>(
     let (left, right) = (left.as_ref(), right.as_ref());
     assert!(
         !right.contains_nan(),
-        "Received matrix contains NaN:\nright: {right:?}"
+        "Received matrix contains NaN:\nright: {right}"
     );
     assert!(
         !left.contains_nan(),
-        "Received matrix contains NaN:\nleft: {left:?}"
+        "Received matrix contains NaN:\nleft: {left}"
     );
     assert!(
         right.eq(left, abs_tol),
-        "Matrices do not match:\nleft: {left:?}\nright: {right:?}",
+        "Matrices do not match:\nleft: {left}\nright: {right}",
     )
 }
 
@@ -31,6 +53,6 @@ pub fn assert_eq_tol(left: R, right: R, abs_tol: R) {
     assert!(!right.is_nan(), "Right value is NaN");
     assert!(
         left.abs_diff(right) < abs_tol,
-        "Scalars do not match:\nleft: {left:?}\nright: {right:?}",
+        "Scalars do not match:\nleft: {left}\nright: {right}",
     )
 }

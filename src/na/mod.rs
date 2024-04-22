@@ -171,7 +171,7 @@ fn power_iteration_test() {
     }
 }
 
-/// Rayleight Quotient.
+/// Rayleigh Quotient.
 /// Useful for calculating the eigenvalue of `v` when it is known that
 /// it is an eigenvector of `A`.
 pub fn rayleigh_quotient<const N: usize>(v: &Mat<N, 1>, A: &Mat<N, N>) -> R {
@@ -219,6 +219,52 @@ fn inverse_iteration_against_power_iteration() {
     }
 }
 
+/// Rayleigh Quotient Iteration.
+///
+/// Currently runs forever on matrices that have no eigenvalues.
+pub fn rayleigh_quotient_iteration<const N: usize>(
+    A: &Mat<N, N>,
+) -> Result<(R, Mat<N, 1>)> {
+    let mut v = Mat::rand();
+    v.l2_normalize();
+    let mut lambda = v.dot(&(A * &v));
+    let I = eye();
+
+    let mut k = 0;
+    const LIMIT: usize = 100;
+
+    loop {
+        let B = A - lambda * &I;
+        v = B.solve_lls(&v);
+        v.l2_normalize();
+        lambda = v.dot(&(A * &v));
+
+        if k > LIMIT {
+            return Err(Error::NoEigenvalues);
+        }
+        k += 1;
+
+        println!("λ[{k}]: {lambda}, v: {}", v.t());
+
+        if v.is_eigenvector_of(&B, 1e-8) {
+            break Ok((lambda, v));
+        }
+    }
+}
+
+#[test]
+fn rayleigh_quotient_iteration_test() {
+    const N: usize = 6;
+    let mut k = 0;
+    while k < SMALL_REPS {
+        let A = Mat::<N, N>::rand();
+        if let Ok((lambda, v)) = rayleigh_quotient_iteration(&A) {
+            assert_eq_mat!(&A * &v, lambda * &v, 1e-8);
+            k += 1;
+        }
+    }
+}
+
 /// The allow_unused sink.
 #[allow(unused)]
 fn demo() {
@@ -231,4 +277,5 @@ fn demo() {
     power_iteration(&A);
     rayleigh_quotient(&b, &A);
     inverse_iteration(&A, 0.);
+    rayleigh_quotient_iteration(&A);
 }

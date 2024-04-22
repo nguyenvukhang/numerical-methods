@@ -17,4 +17,5 @@ pub(crate) type Result<T> = std::result::Result<T, Error>;
 #[allow(unused)]
 pub enum Error {
     TooManyIterations(usize),
+    NoEigenvalues,
 }
