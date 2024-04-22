@@ -13,11 +13,6 @@ impl<const M: usize> Mat<M, 1> {
         u.dot(self) / u.dot(u) * u
     }
 
-    /// Euclidean norm.
-    pub fn l2_norm(&self) -> R {
-        self.dot(self).sqrt()
-    }
-
     /// Normalizes the vector using l2-norm.
     pub fn l2_normalize(&mut self) {
         let d = self.l2_norm();

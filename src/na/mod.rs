@@ -148,7 +148,7 @@ fn backward_sub_test() {
 
 /// Determine the dominant eigenvector of a matrix, and its
 /// corresponding eigenvalue.
-fn power_iteration<const N: usize>(A: &Mat<N, N>) -> (R, Mat<N, 1>) {
+pub fn power_iteration<const N: usize>(A: &Mat<N, N>) -> (R, Mat<N, 1>) {
     let mut v = A.col(1);
     loop {
         let mut v2 = A * &v;
@@ -160,13 +160,6 @@ fn power_iteration<const N: usize>(A: &Mat<N, N>) -> (R, Mat<N, 1>) {
     }
 }
 
-/// Rayleight Quotient.
-/// Useful for calculating the eigenvalue of `v` when it is known that
-/// it is an eigenvector of `A`.
-fn rayleigh_quotient<const N: usize>(v: &Mat<N, 1>, A: &Mat<N, N>) -> R {
-    v.dot(&(A * v)) / v.dot(v) // = vᵀAv/vᵀv
-}
-
 #[test]
 fn power_iteration_test() {
     const N: usize = 6;
@@ -174,6 +167,54 @@ fn power_iteration_test() {
         let A = Mat::<N, N>::rand();
         let (lambda, v) = power_iteration(&A);
         assert_eq_mat(&A * &v, lambda * v, 1e-10);
+    }
+}
+
+/// Rayleight Quotient.
+/// Useful for calculating the eigenvalue of `v` when it is known that
+/// it is an eigenvector of `A`.
+pub fn rayleigh_quotient<const N: usize>(v: &Mat<N, 1>, A: &Mat<N, N>) -> R {
+    v.dot(&(A * v)) / v.dot(v) // = vᵀAv/vᵀv
+}
+
+/// Inverse iteration.
+///
+/// `a` is the shift.
+pub fn inverse_iteration<const N: usize>(
+    A: &Mat<N, N>,
+    a: R,
+) -> Result<(R, Mat<N, 1>)> {
+    let mut v = A.col(1);
+    let mut aI = eye();
+    let mut count = 0;
+    const LIMIT: usize = 10000;
+    aI.on_each_mut(|v| v * a);
+    loop {
+        if count > LIMIT {
+            break Err(Error::TooManyIterations);
+        }
+        count += 1;
+        let mut w = (A - &aI).solve_lls(&v);
+        w.l2_normalize();
+        if (&w - &v).l2_norm() < 1e-8 {
+            break Ok((v.dot(&(A * &v)), v));
+        }
+        v = w;
+    }
+}
+
+#[test]
+fn inverse_iteration_test() {
+    const N: usize = 6;
+    let mut i = 0;
+    while i < N {
+        let A = Mat::<N, N>::rand();
+        if let Ok((lambda, v)) =
+            inverse_iteration(&A, rayleigh_quotient(&A.col(1), &A))
+        {
+            assert_eq_mat(&A * &v, lambda * v, 1e-6);
+            i += 1;
+        }
     }
 }
 

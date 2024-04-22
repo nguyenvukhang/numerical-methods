@@ -245,6 +245,22 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         let v1 = v.top_n_rows::<N>();
         R1.backward_sub(&v1)
     }
+
+    /// For column vector, this gives the l2-norm or Euclidean norm.
+    /// For matrices, this gives the Spectral norm, the square root of
+    /// the largest eigenvalue of AᵀA.
+    pub fn l2_norm(&self) -> R {
+        match N {
+            1 => {
+                let v = self.col(1); // the one and only column.
+                v.dot(&v).sqrt()
+            }
+            _ => {
+                let (lambda, _) = na::power_iteration(&(self.t() * self));
+                lambda.sqrt()
+            }
+        }
+    }
 }
 
 #[test]
