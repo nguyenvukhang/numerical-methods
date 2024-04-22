@@ -41,4 +41,13 @@ impl<const M: usize> Mat<M, 1> {
         }
         true
     }
+
+    /// Checks if `self` is an eigenvector of `A`.
+    pub fn is_eigenvector_of(&self, A: &Mat<M, M>, tolerance: R) -> bool {
+        let v = self / self.l2_norm();
+        let Av = A * &v;
+        let lambda = v.dot(&Av);
+        let lv = lambda * v;
+        (Av - lv).l2_norm() < tolerance
+    }
 }

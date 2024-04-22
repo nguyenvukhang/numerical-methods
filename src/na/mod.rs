@@ -154,6 +154,7 @@ pub fn power_iteration<const N: usize>(A: &Mat<N, N>) -> (R, Mat<N, 1>) {
         let mut v2 = A * &v;
         v2.l2_normalize();
         if (&v2 - &v).l2_norm() < 1e-15 {
+            v = v2;
             break (v.dot(&(A * &v)), v);
         }
         v = v2;
@@ -183,38 +184,38 @@ pub fn rayleigh_quotient<const N: usize>(v: &Mat<N, 1>, A: &Mat<N, N>) -> R {
 pub fn inverse_iteration<const N: usize>(
     A: &Mat<N, N>,
     a: R,
-) -> Result<(R, Mat<N, 1>)> {
+) -> (R, Mat<N, 1>) {
     let mut v = A.col(1);
-    let mut aI = eye();
-    let mut count = 0;
-    const LIMIT: usize = 10000;
-    aI.on_each_mut(|v| v * a);
+    let B = A - a * eye();
+
     loop {
-        if count > LIMIT {
-            break Err(Error::TooManyIterations);
+        v = B.solve_lls(&v);
+        v.l2_normalize();
+
+        if v.is_eigenvector_of(&B, 1e-8) {
+            break (v.dot(&(A * &v)), v);
         }
-        count += 1;
-        let mut w = (A - &aI).solve_lls(&v);
-        w.l2_normalize();
-        if (&w - &v).l2_norm() < 1e-8 {
-            break Ok((v.dot(&(A * &v)), v));
-        }
-        v = w;
     }
 }
 
 #[test]
 fn inverse_iteration_test() {
     const N: usize = 6;
-    let mut i = 0;
-    while i < N {
+    for _ in 0..SMALL_REPS {
         let A = Mat::<N, N>::rand();
-        if let Ok((lambda, v)) =
-            inverse_iteration(&A, rayleigh_quotient(&A.col(1), &A))
-        {
-            assert_eq_mat(&A * &v, lambda * v, 1e-6);
-            i += 1;
-        }
+        let (lambda, v) = inverse_iteration(&A, A.l1_norm());
+        assert_eq_mat(&A * &v, lambda * &v, 1e-8);
+    }
+}
+
+#[test]
+fn inverse_iteration_against_power_iteration() {
+    const N: usize = 6;
+    for _ in 0..SMALL_REPS {
+        let A = Mat::<N, N>::rand();
+        let (_, v) = inverse_iteration(&A, A.l1_norm());
+        let (_, pv) = power_iteration(&A);
+        assert!(pv.eq(&v, 1e-8) || pv.eq(-v, 1e-8));
     }
 }
 
@@ -229,4 +230,5 @@ fn demo() {
     backward_sub(&A, &b);
     power_iteration(&A);
     rayleigh_quotient(&b, &A);
+    inverse_iteration(&A, 0.);
 }

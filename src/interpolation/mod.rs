@@ -14,5 +14,3 @@ fn demo() {
     NewtonInterpolation::new(&xs, &ys);
     LagrangeInterpolation::new(&xs, &ys);
 }
-
-pub fn run() {}
