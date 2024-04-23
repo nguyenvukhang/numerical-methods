@@ -1,6 +1,13 @@
 use super::{Mat, R};
 
-use std::ops;
+use std::ops::{Div, DivAssign, Mul, MulAssign};
+
+/// Convert a 1x1 matrix into a scalar.
+impl From<Mat<1, 1>> for R {
+    fn from(value: Mat<1, 1>) -> Self {
+        value[(1, 1)]
+    }
+}
 
 pub trait RealTraits {
     fn abs_diff(&self, rhs: Self) -> R;
@@ -16,31 +23,60 @@ impl RealTraits for R {
     }
 }
 
-macro_rules! op {
-    ($fn:ident, $trait:ident, $op:tt, $v:ty, $s:ty) => {
-        impl<const M: usize, const N: usize> ops::$trait<$s> for $v {
-            type Output = Mat<M, N>;
-            fn $fn(self, rhs: $s) -> Self::Output {
-                self.on_each(|v| v $op rhs)
-            }
-        }
-        impl<const M: usize, const N: usize> ops::$trait<$v> for $s {
-            type Output = Mat<M, N>;
-            fn $fn(self, rhs: $v) -> Self::Output {
-                rhs.on_each(|v| v $op self)
-            }
-        }
-    };
+/// Core matrix scalar multiplication. All other implementations will call this.
+impl<const M: usize, const N: usize> MulAssign<R> for Mat<M, N> {
+    fn mul_assign(&mut self, x: R) {
+        (1..=M).for_each(|i| (1..=N).for_each(|j| self[(i, j)] *= x));
+    }
 }
 
-macro_rules!x4{($x:ident,$t:ident,$o:tt)=>{op!($x,$t,$o,Mat<M,N>,R);op!($x,$t,$o,&Mat<M,N>,R);op!($x,$t,$o,Mat<M,N>,&R);op!($x,$t,$o,&Mat<M,N>,&R);};}
+impl<const M: usize, const N: usize> Mul<R> for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn mul(mut self, x: R) -> Self::Output {
+        self *= x;
+        self
+    }
+}
 
-x4!(mul, Mul, *);
-x4!(div, Div, /);
+impl<const M: usize, const N: usize> Mul<Mat<M, N>> for R {
+    type Output = Mat<M, N>;
+    fn mul(self, m: Mat<M, N>) -> Self::Output {
+        m * self
+    }
+}
 
-/// Convert a 1x1 matrix into a scalar.
-impl From<Mat<1, 1>> for R {
-    fn from(value: Mat<1, 1>) -> Self {
-        value[(1, 1)]
+impl<const M: usize, const N: usize> Mul<R> for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn mul(self, x: R) -> Self::Output {
+        self.clone() * x
+    }
+}
+
+impl<const M: usize, const N: usize> Mul<&Mat<M, N>> for R {
+    type Output = Mat<M, N>;
+    fn mul(self, m: &Mat<M, N>) -> Self::Output {
+        m * self
+    }
+}
+
+/// Core matrix scalar division. All other implementations will call this.
+impl<const M: usize, const N: usize> DivAssign<R> for Mat<M, N> {
+    fn div_assign(&mut self, x: R) {
+        (1..=M).for_each(|i| (1..=N).for_each(|j| self[(i, j)] /= x));
+    }
+}
+
+impl<const M: usize, const N: usize> Div<R> for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn div(mut self, x: R) -> Self::Output {
+        self /= x;
+        self
+    }
+}
+
+impl<const M: usize, const N: usize> Div<R> for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn div(self, x: R) -> Self::Output {
+        self.clone() / x
     }
 }

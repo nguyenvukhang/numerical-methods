@@ -1,46 +1,127 @@
 use super::Mat;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Neg, Sub};
 
-macro_rules! op {
-    (add, $a:ty, $b:ty) => {
-        impl<const M: usize, const N: usize> Add<$b> for $a {
-            type Output = Mat<M, N>;
-            fn add(self, rhs: $b) -> Self::Output {
-                self.on_each2(&rhs, |a, b| a + b)
-            }
+/// Core matrix negation. All other implementations will call this.
+impl<const M: usize, const N: usize> Neg for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn neg(mut self) -> Self::Output {
+        for i in 1..=M {
+            (1..=N).for_each(|j| self[(i, j)] = -self[(i, j)]);
         }
-    };
-    (sub, $a:ty, $b:ty) => {
-        impl<const M: usize, const N: usize> Sub<$b> for $a {
-            type Output = Mat<M, N>;
-            fn sub(self, rhs: $b) -> Self::Output {
-                self.on_each2(&rhs, |a, b| a - b)
-            }
-        }
-    };
-    (mul, $a:ty, $b:ty) => {
-        impl<const M: usize, const N: usize, const P: usize> Mul<$b> for $a {
-            type Output = Mat<M, N>;
-            fn mul(self, rhs: $b) -> Self::Output {
-                let mut m = Mat::<M, N>::new();
-                for i in self.row_iter() {
-                    for j in rhs.col_iter() {
-                        for k in self.col_iter() {
-                            m[(i, j)] += self[(i, k)] * rhs[(k, j)]
-                        }
-                    }
-                }
-                m
-            }
-        }
-    };
+        self
+    }
 }
 
-macro_rules!x4{
-    (mul)=>{op!(mul,Mat<M,P>,Mat<P,N>);op!(mul,&Mat<M,P>,Mat<P,N>);op!(mul,Mat<M,P>,&Mat<P,N>);op!(mul,&Mat<M,P>,&Mat<P,N>);};
-    ($x:ident)=>{op!($x,Mat<M,N>,Mat<M,N>);op!($x,&Mat<M,N>,Mat<M,N>);op!($x,Mat<M,N>,&Mat<M,N>);op!($x,&Mat<M,N>,&Mat<M,N>);};
+impl<const M: usize, const N: usize> Neg for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn neg(self) -> Self::Output {
+        -self.clone()
+    }
 }
 
-x4!(add);
-x4!(sub);
-x4!(mul);
+/// Core matrix addition. All other implementations will call this.
+impl<const M: usize, const N: usize> Add<&Mat<M, N>> for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn add(mut self, B: &Mat<M, N>) -> Self::Output {
+        for i in 1..=M {
+            (1..=N).for_each(|j| self[(i, j)] += B[(i, j)]);
+        }
+        self
+    }
+}
+
+impl<const M: usize, const N: usize> Add<Mat<M, N>> for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn add(self, rhs: Mat<M, N>) -> Self::Output {
+        self + &rhs
+    }
+}
+
+impl<const M: usize, const N: usize> Add<Mat<M, N>> for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn add(self, rhs: Mat<M, N>) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl<const M: usize, const N: usize> Add<&Mat<M, N>> for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn add(self, rhs: &Mat<M, N>) -> Self::Output {
+        self.clone() + rhs
+    }
+}
+
+/// Core matrix subtraction. All other implementations will call this.
+impl<const M: usize, const N: usize> Sub<&Mat<M, N>> for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn sub(mut self, B: &Mat<M, N>) -> Self::Output {
+        for i in 1..=M {
+            (1..=N).for_each(|j| self[(i, j)] -= B[(i, j)]);
+        }
+        self
+    }
+}
+
+impl<const M: usize, const N: usize> Sub<Mat<M, N>> for Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn sub(self, rhs: Mat<M, N>) -> Self::Output {
+        self - &rhs
+    }
+}
+
+impl<const M: usize, const N: usize> Sub<Mat<M, N>> for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn sub(self, rhs: Mat<M, N>) -> Self::Output {
+        -rhs + self
+    }
+}
+
+impl<const M: usize, const N: usize> Sub<&Mat<M, N>> for &Mat<M, N> {
+    type Output = Mat<M, N>;
+    fn sub(self, rhs: &Mat<M, N>) -> Self::Output {
+        self.clone() - rhs
+    }
+}
+
+/// Core matrix multiplication. All other implementations will call this.
+impl<const M: usize, const N: usize, const P: usize> Mul<&Mat<P, N>>
+    for &Mat<M, P>
+{
+    type Output = Mat<M, N>;
+    fn mul(self, rhs: &Mat<P, N>) -> Self::Output {
+        let mut m = Mat::zero(); // new allocation is inevitable due to dimensions.
+        for i in 1..=M {
+            for j in 1..=N {
+                (1..=P).for_each(|k| m[(i, j)] += self[(i, k)] * rhs[(k, j)]);
+            }
+        }
+        m
+    }
+}
+
+impl<const M: usize, const N: usize, const P: usize> Mul<Mat<P, N>>
+    for Mat<M, P>
+{
+    type Output = Mat<M, N>;
+    fn mul(self, rhs: Mat<P, N>) -> Self::Output {
+        &self * &rhs
+    }
+}
+
+impl<const M: usize, const N: usize, const P: usize> Mul<Mat<P, N>>
+    for &Mat<M, P>
+{
+    type Output = Mat<M, N>;
+    fn mul(self, rhs: Mat<P, N>) -> Self::Output {
+        self * &rhs
+    }
+}
+
+impl<const M: usize, const N: usize, const P: usize> Mul<&Mat<P, N>>
+    for Mat<M, P>
+{
+    type Output = Mat<M, N>;
+    fn mul(self, rhs: &Mat<P, N>) -> Self::Output {
+        &self * rhs
+    }
+}

@@ -1,7 +1,7 @@
 use super::{Mat, R};
 
 use std::fmt;
-use std::ops::{Index, IndexMut, Neg};
+use std::ops::{Index, IndexMut};
 
 impl<const M: usize, const N: usize> fmt::Display for Mat<M, N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -57,19 +57,5 @@ impl<const N: usize> IndexMut<usize> for Mat<N, 1> {
 impl<const M: usize, const N: usize> AsRef<Mat<M, N>> for Mat<M, N> {
     fn as_ref(&self) -> &Mat<M, N> {
         &self
-    }
-}
-
-impl<const M: usize, const N: usize> Neg for &Mat<M, N> {
-    type Output = Mat<M, N>;
-    fn neg(self) -> Self::Output {
-        self.on_each(|v| -v)
-    }
-}
-
-impl<const M: usize, const N: usize> Neg for Mat<M, N> {
-    type Output = Mat<M, N>;
-    fn neg(self) -> Self::Output {
-        self.on_each(|v| -v)
     }
 }

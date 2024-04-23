@@ -1,7 +1,7 @@
 mod algebra;
 mod column_traits;
 mod inits;
-mod matrix_traits;
+mod core_traits;
 mod scalar_traits;
 mod square_matrix;
 
@@ -12,7 +12,7 @@ pub use column_traits::*;
 #[allow(unused)]
 pub use inits::*;
 #[allow(unused)]
-pub use matrix_traits::*;
+pub use core_traits::*;
 #[allow(unused)]
 pub use scalar_traits::*;
 
