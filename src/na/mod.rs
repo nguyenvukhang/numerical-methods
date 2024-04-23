@@ -56,8 +56,9 @@ pub fn gram_schmidt<const M: usize, const N: usize>(
 
     // Normalize the columns of Q.
     for j in A.col_iter() {
-        let c = Q.col(j);
-        Q.set_col(j, &c / c.l2_norm())
+        let mut c = Q.col(j);
+        c.l2_normalize();
+        Q.set_col(j, c)
     }
 
     let n = A.ncols();

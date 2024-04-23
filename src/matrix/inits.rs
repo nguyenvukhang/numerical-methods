@@ -1,4 +1,4 @@
-use super::*;
+use super::{Mat, R};
 
 /// Initalize a column vector.
 #[allow(unused)]

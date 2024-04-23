@@ -1,25 +1,15 @@
 mod algebra;
-mod column_traits;
-mod inits;
+mod column_methods;
 mod core_traits;
+mod inits;
 mod scalar_traits;
 mod square_matrix;
 
-#[allow(unused)]
-pub use algebra::*;
-#[allow(unused)]
-pub use column_traits::*;
-#[allow(unused)]
 pub use inits::*;
-#[allow(unused)]
-pub use core_traits::*;
-#[allow(unused)]
 pub use scalar_traits::*;
 
 use crate::na;
 use crate::prelude::*;
-
-use rand::Rng;
 
 use std::ops::RangeInclusive;
 
@@ -45,21 +35,16 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Generate a matrix populated with random values between 0 and 1.
     pub fn rand() -> Self {
-        let mut rng = rand::thread_rng();
-        Self::new().on_each(|_| rng.gen())
+        Self::new().on_each(|_| rand::random())
     }
 
     pub fn from(data: [[R; N]; M]) -> Self {
-        Mat::<N, M> { data }.transpose()
+        Mat { data }.transpose()
     }
 
     pub fn transpose(&self) -> Mat<N, M> {
         let mut A = Mat::new();
-        for i in self.row_iter() {
-            for j in self.col_iter() {
-                A[(j, i)] = self[(i, j)];
-            }
-        }
+        (1..=M).for_each(|i| (1..=N).for_each(|j| A[(j, i)] = self[(i, j)]));
         A
     }
 
@@ -70,8 +55,8 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     pub fn eq<X: AsRef<Self>>(&self, rhs: X, abs_tol: R) -> bool {
         let rhs = rhs.as_ref();
-        for i in self.row_iter() {
-            for j in self.col_iter() {
+        for i in 1..=M {
+            for j in 1..=N {
                 if self[(i, j)].abs_diff(rhs[(i, j)]) > abs_tol {
                     return false;
                 }
@@ -91,9 +76,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     /// Extract the `i`-th row of the matrix.
     pub fn row(&self, i: usize) -> Mat<1, N> {
         let mut m = Mat::new();
-        for j in self.col_iter() {
-            m[(1, j)] = self[(i, j)];
-        }
+        (1..=N).for_each(|j| m[(1, j)] = self[(i, j)]);
         m
     }
 
@@ -102,18 +85,20 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     }
 
     /// Extract the `j`-th column of the matrix.
+    ///
+    /// FIXME: one day find a way to make this not need to clone.
     pub fn col(&self, j: usize) -> Mat<M, 1> {
         Mat { data: [self.data[j - 1]] }
     }
 
     /// Set the `i`-th row of the matrix.
     pub fn set_row(&mut self, i: usize, row: Mat<1, N>) {
-        self.col_iter().for_each(|j| self[(i, j)] = row[(1, j)]);
+        (1..=N).for_each(|j| self[(i, j)] = row[(1, j)]);
     }
 
     /// Set the `j`-th column of the matrix.
     pub fn set_col(&mut self, j: usize, col: Mat<M, 1>) {
-        self.row_iter().for_each(|i| self[(i, j)] = col[i]);
+        self.data[j - 1] = col.data[0];
     }
 
     pub fn dimensions(&self) -> (usize, usize) {
@@ -131,8 +116,8 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     /// Apply a function element-wise, and create a new matrix.
     pub fn on_each<F: FnMut(R) -> R>(&self, mut f: F) -> Self {
         let mut m = Self::new();
-        for i in self.row_iter() {
-            for j in self.col_iter() {
+        for i in 1..=M {
+            for j in 1..=N {
                 m[(i, j)] = f(self[(i, j)]);
             }
         }
@@ -141,8 +126,8 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Apply a function element-wise.
     pub fn on_each_mut<F: FnMut(R) -> R>(&mut self, mut f: F) {
-        for i in self.row_iter() {
-            for j in self.col_iter() {
+        for i in 1..=M {
+            for j in 1..=N {
                 self[(i, j)] = f(self[(i, j)]);
             }
         }
@@ -151,8 +136,8 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     /// Zip up two same-dimesion matrices with a function.
     pub fn on_each2<F: Fn(R, R) -> R>(&self, other: &Self, f: F) -> Self {
         let mut m = Self::new();
-        for i in self.row_iter() {
-            for j in self.col_iter() {
+        for i in 1..=M {
+            for j in 1..=N {
                 m[(i, j)] = f(self[(i, j)], other[(i, j)]);
             }
         }
@@ -160,12 +145,14 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     }
 
     /// Raise each element to a particular exponent.
-    pub fn powf(&mut self, exponent: R) {
-        self.on_each(|v| v.powf(exponent));
+    pub fn powf(&mut self, x: R) {
+        (1..=M).for_each(|i| {
+            (1..=N).for_each(|j| self[(i, j)] = self[(i, j)].powf(x))
+        });
     }
 
     pub fn is_upper_triangular(&self) -> bool {
-        for i in self.row_iter() {
+        for i in 1..=M {
             for j in 1..i {
                 if self[(i, j)] != 0. {
                     return false;
@@ -177,20 +164,12 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Zeros-out entries to become upper triangular.
     pub fn to_upper_triangular(&mut self) {
-        for i in self.row_iter() {
-            for j in 1..i {
-                self[(i, j)] = 0.;
-            }
-        }
+        (1..=M).for_each(|i| (1..i).for_each(|j| self[(i, j)] = 0.));
     }
 
     /// Zeros-out entries to become upper triangular.
     pub fn to_lower_triangular(&mut self) {
-        for i in self.row_iter() {
-            for j in i + 1..=N {
-                self[(i, j)] = 0.;
-            }
-        }
+        (1..=M).for_each(|i| (i + 1..=N).for_each(|j| self[(i, j)] = 0.));
     }
 
     /// Extracts the upper triangular portion of the matrix.
@@ -209,21 +188,17 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Extracts the top n×n sub-matrix.
     pub fn top_square(&self) -> Mat<N, N> {
-        self.top_n_rows::<N>()
+        self.top_n_rows()
     }
 
     pub fn top_n_rows<const U: usize>(&self) -> Mat<U, N> {
-        let mut m = Mat::<U, N>::new();
+        let mut m = Mat::new();
         assert!(
             m.nrows() <= self.nrows(),
             "Not enough rows in matrix to take first {}",
             m.nrows()
         );
-        for i in m.row_iter() {
-            for j in m.col_iter() {
-                m[(i, j)] = self[(i, j)];
-            }
-        }
+        (1..=U).for_each(|i| (1..=N).for_each(|j| m[(i, j)] = self[(i, j)]));
         m
     }
 
@@ -234,8 +209,8 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Returns true if none of the entries of this matrix is NaN.
     pub fn contains_nan(&self) -> bool {
-        for i in self.row_iter() {
-            for j in self.col_iter() {
+        for i in 1..=M {
+            for j in 1..=N {
                 if self[(i, j)].is_nan() {
                     return true;
                 }
@@ -266,7 +241,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     pub fn l1_norm(&self) -> R {
         let mut max = 0.;
         for j in 1..=N {
-            let s: R = self.col_raw(j).iter().map(|v| v.abs()).sum();
+            let s = self.col_raw(j).iter().map(|v| v.abs()).sum();
             if s > max {
                 max = s;
             }
