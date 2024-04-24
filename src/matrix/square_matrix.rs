@@ -5,28 +5,26 @@ impl<const N: usize> Mat<N, N> {
     pub fn backward_sub(&self, b: &Mat<N, 1>) -> Mat<N, 1> {
         assert!(
             self.is_upper_triangular(),
-            "A needs to be upper-triangular:\n{self:?}"
+            "A needs to be upper-triangular:\n{self}"
         );
         let mut x = b.clone();
         for k in (1..=N).rev() {
-            let mut s = b[k];
             for j in k + 1..=N {
-                s -= self[(k, j)] * x[j];
+                x[k] -= self[(k, j)] * x[j];
             }
-            x[k] = s / self[(k, k)];
+            x[k] /= self[(k, k)];
         }
         x
     }
 
     /// Tranpose in-place; possible since it's a square.
     pub fn transpose_inplace(&mut self) {
+        use std::ptr;
         for i in 1..=N {
             for j in 1..i {
-                let a = std::ptr::addr_of_mut!(self[(i, j)]);
-                let b = std::ptr::addr_of_mut!(self[(j, i)]);
-                unsafe {
-                    std::ptr::swap(a, b);
-                }
+                let a = ptr::addr_of_mut!(self[(i, j)]);
+                let b = ptr::addr_of_mut!(self[(j, i)]);
+                unsafe { ptr::swap(a, b) }
             }
         }
     }
@@ -38,8 +36,7 @@ impl<const N: usize> Mat<N, N> {
 
     /// Create a new identity matrix.
     pub fn eye() -> Self {
-        use std::array::from_fn as mk;
-        Self { data: mk(|i| mk(|j| R::from(i == j))) }
+        Self::from_fn(|i, j| R::from(i == j))
     }
 
     /// Create a random symmetric matrix.

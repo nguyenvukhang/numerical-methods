@@ -31,9 +31,16 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         Self { data: [[0.; M]; N] }
     }
 
+    /// Give a function that takes (row, col) as inputs, and returns
+    /// the element to insert at that position
+    pub fn from_fn<F: Fn(usize, usize) -> R>(f: F) -> Self {
+        use std::array::from_fn as mk;
+        Self { data: mk(|i| mk(|j| f(i + 1, j + 1))) }
+    }
+
     /// Generate a matrix populated with random values between 0 and 1.
     pub fn rand() -> Self {
-        Self::new().on_each(|_| rand::random())
+        Self::from_fn(|_, _| rand::random())
     }
 
     pub fn from(data: [[R; N]; M]) -> Self {
@@ -116,37 +123,6 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         N
     }
 
-    /// Apply a function element-wise, and create a new matrix.
-    pub fn on_each<F: FnMut(R) -> R>(&self, mut f: F) -> Self {
-        let mut m = Self::new();
-        for i in 1..=M {
-            for j in 1..=N {
-                m[(i, j)] = f(self[(i, j)]);
-            }
-        }
-        m
-    }
-
-    /// Apply a function element-wise.
-    pub fn on_each_mut<F: FnMut(R) -> R>(&mut self, mut f: F) {
-        for i in 1..=M {
-            for j in 1..=N {
-                self[(i, j)] = f(self[(i, j)]);
-            }
-        }
-    }
-
-    /// Zip up two same-dimesion matrices with a function.
-    pub fn on_each2<F: Fn(R, R) -> R>(&self, other: &Self, f: F) -> Self {
-        let mut m = Self::new();
-        for i in 1..=M {
-            for j in 1..=N {
-                m[(i, j)] = f(self[(i, j)], other[(i, j)]);
-            }
-        }
-        m
-    }
-
     /// Raise each element to a particular exponent.
     pub fn powf(&mut self, x: R) {
         (1..=M).for_each(|i| {
@@ -196,11 +172,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     pub fn top_n_rows<const U: usize>(&self) -> Mat<U, N> {
         let mut m = Mat::new();
-        assert!(
-            m.nrows() <= self.nrows(),
-            "Not enough rows in matrix to take first {}",
-            m.nrows()
-        );
+        assert!(N <= M, "Not enough rows in matrix to take first {M}",);
         (1..=U).for_each(|i| (1..=N).for_each(|j| m[(i, j)] = self[(i, j)]));
         m
     }

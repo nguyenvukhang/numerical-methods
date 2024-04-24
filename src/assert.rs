@@ -1,7 +1,3 @@
-#![allow(unused)]
-
-use crate::prelude::{Mat, RealTraits, R};
-
 /// Asserts that two matrices are the same, with an absolute tolerance.
 #[macro_export]
 macro_rules! assert_eq_mat {

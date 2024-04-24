@@ -17,7 +17,7 @@ impl<const M: usize> Mat<M, 1> {
     /// Normalizes the vector using l2-norm.
     pub fn l2_normalize(&mut self) {
         let d = self.l2_norm();
-        self.on_each_mut(|v| v / d);
+        (1..=M).for_each(|i| self[i] /= d);
     }
 
     /// Converts the column vector into the `k`-th canonical basis
