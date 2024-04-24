@@ -20,7 +20,17 @@ impl<const M: usize, const N: usize> fmt::Display for Mat<M, N> {
 }
 impl<const M: usize, const N: usize> fmt::Debug for Mat<M, N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        writeln!(f, "Matrix")?;
+        for i in 1..=M {
+            write!(f, "  ")?;
+            for j in 1..=N {
+                write!(f, "{:>8.10}", self[(i, j)])?;
+            }
+            if i < M {
+                writeln!(f)?;
+            }
+        }
+        Ok(())
     }
 }
 

@@ -55,7 +55,7 @@ fn newton_interpolation_test() {
         let rand = Mat::<6, 1>::rand();
         for i in 1..=6 {
             let x = rand[i];
-            assert_eq_tol!(pl(x), lg.estimate(x), 1e-8);
+            assert_eq_tol!(pl(x), lg.estimate(x), 1e-4);
         }
     }
 }

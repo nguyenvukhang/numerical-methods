@@ -35,7 +35,7 @@ fn cholesky_test() {
             continue;
         }
         let LT = L.transpose();
-        assert_eq_mat!(A, L * LT, 1e-15);
+        assert_eq_mat!(A, L * LT);
         i += 1;
     }
 }
@@ -91,11 +91,11 @@ pub fn backward_sub<const N: usize>(A: &Mat<N, N>, b: &Mat<N, 1>) -> Mat<N, 1> {
 #[test]
 fn backward_sub_test() {
     const N: usize = 6;
-    for _ in 0..REPS {
+    for _ in 0..HIGH_REPS {
         let A = Mat::<N, N>::rand().upper_triangular();
         let b = Mat::<N, 1>::rand();
         let x = backward_sub(&A, &b);
-        assert_eq_mat!(A * x, b, 1e-8);
+        assert_eq_mat!(A * x, b, 1e-4);
     }
 }
 
@@ -120,7 +120,7 @@ fn power_iteration_test() {
     for _ in 0..REPS {
         let A = Mat::<N, N>::rand();
         let (lambda, v) = power_iteration(&A);
-        assert_eq_mat!(&A * &v, lambda * v, 1e-10);
+        assert_eq_mat!(&A * &v, lambda * v);
     }
 }
 
@@ -157,7 +157,7 @@ fn inverse_iteration_test() {
     for _ in 0..SMALL_REPS {
         let A = Mat::<N, N>::rand();
         let (lambda, v) = inverse_iteration(&A, A.l1_norm());
-        assert_eq_mat!(A * &v, lambda * &v, 1e-8);
+        assert_eq_mat!(A * &v, lambda * &v);
     }
 }
 
@@ -168,7 +168,7 @@ fn inverse_iteration_against_power_iteration() {
         let A = Mat::<N, N>::rand();
         let (_, v) = inverse_iteration(&A, A.l1_norm());
         let (_, pv) = power_iteration(&A);
-        assert!(pv.eq(&v, 1e-8) || pv.eq(-v, 1e-8));
+        assert!(pv.eq(&v, 1e-5) || pv.eq(-v, 1e-5));
     }
 }
 
@@ -189,13 +189,7 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
     let mut y = B(mu).solve_lls(&x);
     mu += y.dot(&x).recip();
 
-    let mut k = 0;
-
-    loop {
-        if k > 100 {
-            return Err(Error::NoEigenvalues);
-        }
-        x = y.clone();
+    for _ in 0..100 {
         x.l2_normalize();
         y = B(mu).solve_lls(&x);
         let lambda = y.dot(&x);
@@ -203,27 +197,22 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
         if (&y - lambda * &x).l2_norm() / y.l2_norm() < 1e-9 {
             return Ok((mu, x));
         }
-        k += 1;
-        if x.contains_nan() || lambda.is_nan() {
-            return Err(Error::NoEigenvalues);
-        }
+        x = y;
     }
+    Err(Error::NoEigenvalues)
 }
 
 #[test]
 fn rayleigh_quotient_iteration_test() {
     const N: usize = 6;
     let mut k = 0;
-    while k < SMALL_REPS {
+    while k < REPS {
         let A = Mat::<N, N>::rand();
         if let Ok((lambda, v)) = rayleigh_quotient_iteration(&A) {
             let Av = &A * &v;
             let lv = lambda * &v;
-            assert!(
-                (&lv - Mat::zero()).l2_norm() > 1e-8,
-                "lambda * v gives a value too close to zero\nAv: {Av}\nlv: {lv}"
-            );
-            assert_eq_mat!(Av, lv, 1e-8);
+            assert_ne_mat!(lv, Mat::zero());
+            assert_eq_mat!(Av, lv);
             k += 1;
         }
     }

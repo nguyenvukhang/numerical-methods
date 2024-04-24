@@ -11,6 +11,7 @@ impl From<Mat<1, 1>> for R {
 
 pub trait RealTraits {
     fn abs_diff(&self, rhs: Self) -> R;
+    fn rel_diff(&self, rhs: Self) -> R;
 }
 
 impl RealTraits for R {
@@ -20,6 +21,12 @@ impl RealTraits for R {
         } else {
             rhs - self
         }
+    }
+
+    fn rel_diff(&self, rhs: Self) -> R {
+        let d = self.abs_diff(rhs);
+        let b = self.abs().max(rhs.abs());
+        d / b
     }
 }
 

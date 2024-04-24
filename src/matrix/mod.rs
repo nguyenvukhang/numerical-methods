@@ -58,11 +58,11 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         self.transpose()
     }
 
-    pub fn eq<X: AsRef<Self>>(&self, rhs: X, abs_tol: R) -> bool {
+    pub fn eq<X: AsRef<Self>>(&self, rhs: X, rel_tol: R) -> bool {
         let rhs = rhs.as_ref();
         for i in 1..=M {
             for j in 1..=N {
-                if self[(i, j)].abs_diff(rhs[(i, j)]) > abs_tol {
+                if self[(i, j)].rel_diff(rhs[(i, j)]) > rel_tol {
                     return false;
                 }
             }
@@ -241,6 +241,6 @@ fn solve_qr_test() {
         let b = Mat::<6, 1>::rand();
         let x = A.solve_lls(&b);
         let AT = A.transpose();
-        assert_eq_mat!(&AT * A * x, AT * b, 1e-10);
+        assert_eq_mat!(&AT * A * x, AT * b);
     }
 }

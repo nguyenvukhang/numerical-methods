@@ -39,7 +39,7 @@ fn gram_schmidt_test() {
             let norm = Q.col(j).l2_norm();
             assert!(norm.abs_diff(1.) < 1e-9);
         }
-        assert_eq_mat!(A, Q * R, 1e-9);
+        assert_eq_mat!(A, Q * R);
     }
 }
 
@@ -93,6 +93,6 @@ fn householder_refl_test() {
             let norm = Q.col(j).l2_norm();
             assert!(norm.abs_diff(1.) < 1e-9);
         }
-        assert_eq_mat!(Q * R, A, 1e-10);
+        assert_eq_mat!(Q * R, A);
     }
 }

@@ -1,10 +1,13 @@
 pub(crate) use crate::matrix::*;
 
 #[cfg(test)]
-pub(crate) const REPS: usize = 0x1000;
+pub(crate) const REPS: usize = 0x10000;
 
 #[cfg(test)]
-pub(crate) const SMALL_REPS: usize = 0x200;
+pub(crate) const SMALL_REPS: usize = 0x1000;
+
+#[cfg(test)]
+pub(crate) const HIGH_REPS: usize = 0x80000;
 
 pub(crate) type R = f64;
 
