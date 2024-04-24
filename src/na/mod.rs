@@ -46,6 +46,8 @@ pub fn gram_schmidt<const M: usize, const N: usize>(
     A: &Mat<M, N>,
 ) -> (Mat<M, N>, Mat<N, N>) {
     let mut Q = A.clone();
+
+    // Obtain the orthogonal matrix Q.
     for i in 1..=N {
         for j in 1..i {
             let prj = A.col(i).project(Q.col(j));
@@ -54,17 +56,16 @@ pub fn gram_schmidt<const M: usize, const N: usize>(
         }
     }
 
-    let mut R = Mat::new();
-
     // Normalize the columns of Q.
     (1..=N).for_each(|j| Q.col_mut(j).l2_normalize());
 
     // Since A=QR and QᵀQ=I, we obtain R with QᵀA.
-    for i in 1..=N {
-        for j in i..=N {
-            R[(i, j)] = Q.col(i).dot(A.col(j))
-        }
-    }
+    //
+    // Since we know that R is upper-triangular, we can skip the computation
+    // for the lower-triangular portion.
+    let x = |i, j| if i <= j { Q.col(i).dot(A.col(j)) } else { 0. };
+    let R = Mat::from_fn(x);
+
     (Q, R)
 }
 
