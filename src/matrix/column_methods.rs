@@ -48,7 +48,12 @@ impl<const M: usize> Mat<M, 1> {
         let v = self / self.l2_norm();
         let Av = A * &v;
         let lambda = v.dot(&Av);
+        println!("is_eigenvector_of: A {A}");
+        println!("is_eigenvector_of: v {}", v.t());
+        println!("is_eigenvector_of: Av {}", Av.t());
+        println!("is_eigenvector_of: lv {}", lambda * v.t());
         let lv = lambda * v;
-        (Av - lv).l2_norm() < tolerance
+        let diff = (Av - lv).l2_norm();
+        diff < tolerance
     }
 }

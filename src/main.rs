@@ -24,5 +24,13 @@ fn demo() {
 }
 
 fn main() -> Result<()> {
+    let A = Mat::<5, 5>::rand();
+    let (lambda, x) = na::rayleigh_quotient_iteration(&A).unwrap();
+    println!("lambda: {lambda}");
+    println!("x: {x}");
+    let lx = lambda * &x;
+    let Ax = &A * &x;
+    println!("lx = {lx}");
+    println!("Ax = {Ax}");
     Ok(())
 }

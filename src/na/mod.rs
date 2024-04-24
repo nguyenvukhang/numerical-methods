@@ -40,8 +40,6 @@ fn cholesky_test() {
     }
 }
 
-
-
 /// Evaluate a polynomial in linear time, using Horner's Method.
 /// `p` is read highest-degree first.
 pub fn horners(p: &Vec<R>, x: R) -> R {
@@ -180,29 +178,37 @@ fn inverse_iteration_against_power_iteration() {
 pub fn rayleigh_quotient_iteration<const N: usize>(
     A: &Mat<N, N>,
 ) -> Result<(R, Mat<N, 1>)> {
-    let mut v = Mat::rand();
-    v.l2_normalize();
-    let mut lambda = v.dot(A * &v);
+    let B = |mu: R| {
+        let mut B = A.clone();
+        B.add_identity(-mu);
+        B
+    };
+
+    let mut x = Mat::<N, 1>::rand();
+    let mut mu = x.dot(A * &x);
+    let mut y = B(mu).solve_lls(&x);
+    let mut lambda = y.dot(&x);
+    mu += lambda.recip();
+    let mut err = (&y - lambda * &x).l2_norm() / y.l2_norm();
 
     let mut k = 0;
-    const LIMIT: usize = 100;
 
-    loop {
-        let mut B = A.clone();
-        B.add_identity(-lambda);
-        v = B.solve_lls(&v);
-        v.l2_normalize();
-        lambda = v.dot(A * &v);
-
-        if k > LIMIT {
+    while err > 1e-9 {
+        if k > 100 || x.contains_nan() || lambda.is_nan() {
             return Err(Error::NoEigenvalues);
         }
+        x = y.clone();
+        x.l2_normalize();
+        y = B(mu).solve_lls(&x);
+        lambda = y.dot(&x);
+        mu += lambda.recip();
+        err = (&y - lambda * &x).l2_norm() / y.l2_norm();
         k += 1;
-
-        if v.is_eigenvector_of(&B, 1e-9) {
-            break Ok((lambda, v));
-        }
     }
+    if x.contains_nan() || lambda.is_nan() {
+        return Err(Error::NoEigenvalues);
+    }
+    Ok((mu, x))
 }
 
 #[test]
@@ -212,7 +218,13 @@ fn rayleigh_quotient_iteration_test() {
     while k < SMALL_REPS {
         let A = Mat::<N, N>::rand();
         if let Ok((lambda, v)) = rayleigh_quotient_iteration(&A) {
-            assert_eq_mat!(&A * &v, lambda * &v, 1e-8);
+            let Av = &A * &v;
+            let lv = lambda * &v;
+            assert!(
+                (&lv - Mat::zero()).l2_norm() > 1e-8,
+                "lambda * v gives a value too close to zero\nAv: {Av}\nlv: {lv}"
+            );
+            assert_eq_mat!(Av, lv, 1e-8);
             k += 1;
         }
     }
