@@ -39,6 +39,11 @@ impl<const N: usize> Mat<N, N> {
         Self::from_fn(|i, j| R::from(i == j))
     }
 
+    /// Adds `lambda` * `I` to `self`.
+    pub fn add_identity(&mut self, lambda: R) {
+        (1..=N).for_each(|i| self[(i, i)] += lambda);
+    }
+
     /// Create a random symmetric matrix.
     pub fn symmetric() -> Self {
         let x = Mat::rand();

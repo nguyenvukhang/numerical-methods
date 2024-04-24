@@ -35,7 +35,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     /// the element to insert at that position
     pub fn from_fn<F: Fn(usize, usize) -> R>(f: F) -> Self {
         use std::array::from_fn as mk;
-        Self { data: mk(|i| mk(|j| f(i + 1, j + 1))) }
+        Self { data: mk(|j| mk(|i| f(i + 1, j + 1))) }
     }
 
     /// Generate a matrix populated with random values between 0 and 1.
@@ -153,16 +153,12 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Extracts the upper triangular portion of the matrix.
     pub fn upper_triangular(&self) -> Self {
-        let mut m = self.clone();
-        m.to_upper_triangular();
-        m
+        Self::from_fn(|i, j| if i <= j { self[(i, j)] } else { 0. })
     }
 
     /// Extracts the lower triangular portion of the matrix.
     pub fn lower_triangular(&self) -> Self {
-        let mut m = self.clone();
-        m.to_lower_triangular();
-        m
+        Self::from_fn(|i, j| if i >= j { self[(i, j)] } else { 0. })
     }
 
     /// Extracts the top n×n sub-matrix.
@@ -171,10 +167,8 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     }
 
     pub fn top_n_rows<const U: usize>(&self) -> Mat<U, N> {
-        let mut m = Mat::new();
         assert!(N <= M, "Not enough rows in matrix to take first {M}",);
-        (1..=U).for_each(|i| (1..=N).for_each(|j| m[(i, j)] = self[(i, j)]));
-        m
+        Mat::<U, N>::from_fn(|i, j| self[(i, j)])
     }
 
     /// Swaps columns `a` and `b` in the matrix.

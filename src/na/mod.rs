@@ -223,13 +223,13 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
     let mut v = Mat::rand();
     v.l2_normalize();
     let mut lambda = v.dot(A * &v);
-    let I = Mat::eye();
 
     let mut k = 0;
     const LIMIT: usize = 100;
 
     loop {
-        let B = A - lambda * &I;
+        let mut B = A.clone();
+        B.add_identity(-lambda);
         v = B.solve_lls(&v);
         v.l2_normalize();
         lambda = v.dot(A * &v);
@@ -239,7 +239,7 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
         }
         k += 1;
 
-        if v.is_eigenvector_of(&B, 1e-8) {
+        if v.is_eigenvector_of(&B, 1e-9) {
             break Ok((lambda, v));
         }
     }
