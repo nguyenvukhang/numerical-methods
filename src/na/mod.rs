@@ -59,6 +59,7 @@ pub fn gram_schmidt<const M: usize, const N: usize>(
     // Normalize the columns of Q.
     (1..=N).for_each(|j| Q.col_mut(j).l2_normalize());
 
+    // Since A=QR and QᵀQ=I, we obtain R with QᵀA.
     for i in 1..=N {
         for j in i..=N {
             R[(i, j)] = Q.col(i).dot(A.col(j))

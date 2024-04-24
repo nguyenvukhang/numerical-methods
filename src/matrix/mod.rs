@@ -91,14 +91,12 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Extract the `j`-th column of the matrix.
     pub fn col(&self, j: usize) -> &Mat<M, 1> {
-        let colref = self.data.get(j - 1).unwrap();
-        unsafe { std::mem::transmute(colref) }
+        unsafe { std::mem::transmute(&self.data[j - 1]) }
     }
 
     /// Get mutable reference to the `j`-th column of the matrix.
     pub fn col_mut(&mut self, j: usize) -> &mut Mat<M, 1> {
-        let colref = self.data.get_mut(j - 1).unwrap();
-        unsafe { std::mem::transmute(colref) }
+        unsafe { std::mem::transmute(&mut self.data[j - 1]) }
     }
 
     /// Set the `i`-th row of the matrix.
