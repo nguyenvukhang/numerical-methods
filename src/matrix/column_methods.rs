@@ -5,7 +5,7 @@ impl<const M: usize> Mat<M, 1> {
     pub fn dot<X: AsRef<Self>>(&self, rhs: X) -> R {
         let rhs = rhs.as_ref();
         let mut v = self[1] * rhs[1];
-        (2..self.nrows() + 1).for_each(|i| v += self[i] * rhs[i]);
+        (2..=M).for_each(|i| v += self[i] * rhs[i]);
         v
     }
 
@@ -23,7 +23,7 @@ impl<const M: usize> Mat<M, 1> {
     /// Converts the column vector into the `k`-th canonical basis
     /// vector. (i.e. the `k`-th column of the identity matrix)
     pub fn canonical_basis(&mut self, k: usize) {
-        self.row_iter().for_each(|i| self[i] = if i == k { 1. } else { 0. });
+        (1..=M).for_each(|i| self[i] = if i == k { 1. } else { 0. });
     }
 
     /// Returns a single vector of values.
