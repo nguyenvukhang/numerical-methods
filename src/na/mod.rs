@@ -139,7 +139,8 @@ pub fn inverse_iteration<const N: usize>(
     a: R,
 ) -> (R, Mat<N, 1>) {
     let mut v = A.col(1).clone();
-    let B = A - a * Mat::eye();
+    let mut B = A.clone();
+    B.add_identity(-a);
 
     loop {
         v = B.solve_lls(&v);
