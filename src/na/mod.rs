@@ -187,28 +187,27 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
     let mut x = Mat::<N, 1>::rand();
     let mut mu = x.dot(A * &x);
     let mut y = B(mu).solve_lls(&x);
-    let mut lambda = y.dot(&x);
-    mu += lambda.recip();
-    let mut err = (&y - lambda * &x).l2_norm() / y.l2_norm();
+    mu += y.dot(&x).recip();
 
     let mut k = 0;
 
-    while err > 1e-9 {
-        if k > 100 || x.contains_nan() || lambda.is_nan() {
+    loop {
+        if k > 100 {
             return Err(Error::NoEigenvalues);
         }
         x = y.clone();
         x.l2_normalize();
         y = B(mu).solve_lls(&x);
-        lambda = y.dot(&x);
+        let lambda = y.dot(&x);
         mu += lambda.recip();
-        err = (&y - lambda * &x).l2_norm() / y.l2_norm();
+        if (&y - lambda * &x).l2_norm() / y.l2_norm() < 1e-9 {
+            return Ok((mu, x));
+        }
         k += 1;
+        if x.contains_nan() || lambda.is_nan() {
+            return Err(Error::NoEigenvalues);
+        }
     }
-    if x.contains_nan() || lambda.is_nan() {
-        return Err(Error::NoEigenvalues);
-    }
-    Ok((mu, x))
 }
 
 #[test]
