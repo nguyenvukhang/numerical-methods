@@ -43,8 +43,13 @@ impl<const N: usize> Mat<N, N> {
     }
 
     /// Create a random symmetric matrix.
-    pub fn symmetric() -> Mat<N, N> {
-        let mut x = Mat::rand();
+    pub fn symmetric() -> Self {
+        let x = Mat::rand();
         (&x + x.transpose()) / 2.
+    }
+
+    /// Create a random symmetric positive definite matrix.
+    pub fn symmetric_positive_definite() -> Self {
+        Mat::symmetric() + Mat::eye()
     }
 }

@@ -29,15 +29,16 @@ pub fn householder<const M: usize, const N: usize>(
         (j + 1..m + 1).for_each(|i| R[(i, j)] = 0.);
 
         let v = &u / u.l2_norm();
+        let vt = v.t();
 
         // Rpply the HH transform on the remaining columns.
         for i in j + 1..n + 1 {
             let x = R.col(i);
-            let sub = x - 2. * &v * (v.transpose() * x);
+            let sub = x - 2. * &v * (&vt * x);
             (j..m + 1).for_each(|k| R[(k, i)] = sub[(k, 1)]);
         }
 
-        Q = Q * (&I - 2. * &v * v.transpose());
+        Q = Q * (&I - 2. * v * vt);
     }
 
     (Q, R)

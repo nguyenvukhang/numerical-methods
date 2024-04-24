@@ -27,7 +27,7 @@ pub fn cholesky<const N: usize>(A: &mut Mat<N, N>) {
 fn cholesky_test() {
     let mut i = 0;
     while i < REPS {
-        let A = symmetric_positive_definite::<5>();
+        let A = Mat::<5, 5>::symmetric_positive_definite();
         let mut L = A.clone();
         cholesky(&mut L);
         L.to_lower_triangular();

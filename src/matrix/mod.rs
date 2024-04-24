@@ -1,11 +1,9 @@
 mod algebra;
 mod column_methods;
 mod core_traits;
-mod inits;
 mod scalar_traits;
 mod square_matrix;
 
-pub use inits::*;
 pub use scalar_traits::*;
 
 use crate::na;
@@ -233,8 +231,9 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     /// Solve linear-least-squares.
     /// Decomposes `self` into QR via householder, then applied backsub.
     pub fn solve_lls(&self, b: &Mat<M, 1>) -> Mat<N, 1> {
-        let (Q, R) = self.qr_householder();
-        let v = Q.transpose() * b;
+        let (mut Q, R) = self.qr_householder();
+        Q.transpose_inplace();
+        let v = Q * b;
         let R1 = R.top_n_rows::<N>();
         let v1 = v.top_n_rows::<N>();
         R1.backward_sub(&v1)
