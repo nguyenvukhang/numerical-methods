@@ -34,13 +34,12 @@ fn gram_schmidt_test() {
     for _ in 0..REPS {
         let A = Mat::<5, 5>::rand();
         let (Q, R) = gram_schmidt(&A);
-        assert_eq_mat!(A, &Q * R, 1e-9);
-
         // check that the columns of Q have norm == 1.
         for j in 1..=5 {
             let norm = Q.col(j).l2_norm();
             assert!(norm.abs_diff(1.) < 1e-9);
         }
+        assert_eq_mat!(A, Q * R, 1e-9);
     }
 }
 
@@ -49,25 +48,19 @@ fn gram_schmidt_test() {
 pub fn householder<const M: usize, const N: usize>(
     A: &Mat<M, N>,
 ) -> (Mat<M, M>, Mat<M, N>) {
-    let mut R = A.clone();
-
     assert!(M >= N, "Householder QR requires nrows ≥ ncols");
 
-    let I = Mat::eye();
-
-    let mut Q = I.clone();
+    let (mut Q, mut R) = (Mat::eye(), A.clone());
 
     for j in 1..=N {
-        let s = R[(j, j)].signum();
-
-        let mut v = R.col(j).clone();
-
-        (1..j).for_each(|x| v[x] = 0.); // zero-out entries before j.
+        // Get the j-th column of R, but with the first j entries zero'd out
+        let mut v: Mat<M, 1> =
+            Mat::from_fn(|i, _| if i >= j { R[(i, j)] } else { 0. });
 
         // Forcefully set the known column
-        R[(j, j)] = -s * v.l2_norm();
+        R[(j, j)] = -R[(j, j)].signum() * v.l2_norm();
 
-        (j + 1..=M).for_each(|i| R[(i, j)] = 0.);
+        (j + 1..=M).for_each(|i| R[(i, j)] = 0.); // zero-out the rest
 
         // at Rjj times the j-th canonical basis vec to u.
         v[j] -= R[(j, j)];
@@ -77,9 +70,9 @@ pub fn householder<const M: usize, const N: usize>(
 
         // Rpply the HH transform on the remaining columns.
         for i in j + 1..=N {
-            let x = R.col(i);
-            let sub = x - 2. * &v * (&vt * x);
-            (j..=M).for_each(|k| R[(k, i)] = sub[k]);
+            let sub = 2. * &v * (&vt * R.col(i));
+            let mut col = R.col_mut(i);
+            col -= sub;
         }
 
         // Q = Q * (I - 2vvᵀ);
@@ -95,6 +88,11 @@ fn householder_refl_test() {
     for _ in 0..REPS {
         let A = Mat::<6, 6>::rand();
         let (Q, R) = householder(&A);
-        assert_eq_mat!(&Q * R, A, 1e-10);
+        // check that the columns of Q have norm == 1.
+        for j in 1..=5 {
+            let norm = Q.col(j).l2_norm();
+            assert!(norm.abs_diff(1.) < 1e-9);
+        }
+        assert_eq_mat!(Q * R, A, 1e-10);
     }
 }
