@@ -10,7 +10,8 @@ pub fn householder<const M: usize, const N: usize>(
 
     assert!(m >= n, "Householder QR requires nrows ≥ ncols");
 
-    let I = eye::<M>();
+    let I = Mat::eye();
+
     let mut Q = I.clone();
 
     for j in 1..=N {

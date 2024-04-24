@@ -22,4 +22,16 @@ impl<const N: usize> Mat<N, N> {
     pub fn trace(&self) -> R {
         (1..=N).map(|i| self[(i, i)]).sum()
     }
+
+    /// Create a new identity matrix.
+    pub fn eye() -> Self {
+        use std::array::from_fn as mk;
+        Self { data: mk(|i| mk(|j| R::from(i == j))) }
+    }
+
+    /// Create a random symmetric matrix.
+    pub fn symmetric() -> Mat<N, N> {
+        let mut x = Mat::rand();
+        (&x + x.transpose()) / 2.
+    }
 }

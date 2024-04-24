@@ -50,7 +50,7 @@ fn lagrange_interpolation_test() {
 
     for _ in 0..REPS {
         let rand = Mat::<6, 1>::rand();
-        for i in rand.row_iter() {
+        for i in 1..=6 {
             let x = rand[i];
             assert_eq_tol(pl(x), lg.estimate(x), 1e-8);
         }

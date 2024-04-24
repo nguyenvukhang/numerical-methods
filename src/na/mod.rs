@@ -181,7 +181,7 @@ pub fn inverse_iteration<const N: usize>(
     a: R,
 ) -> (R, Mat<N, 1>) {
     let mut v = A.col(1).clone();
-    let B = A - a * eye();
+    let B = A - a * Mat::eye();
 
     loop {
         v = B.solve_lls(&v);
@@ -223,7 +223,7 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
     let mut v = Mat::rand();
     v.l2_normalize();
     let mut lambda = v.dot(A * &v);
-    let I = eye();
+    let I = Mat::eye();
 
     let mut k = 0;
     const LIMIT: usize = 100;
