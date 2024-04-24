@@ -40,49 +40,7 @@ fn cholesky_test() {
     }
 }
 
-/// Compute the (reduced) QR factorization of the matrix A via the
-/// Gram-Schmidt process. Returns (Q, R) tuple.
-pub fn gram_schmidt<const M: usize, const N: usize>(
-    A: &Mat<M, N>,
-) -> (Mat<M, N>, Mat<N, N>) {
-    let mut Q = A.clone();
 
-    // Obtain the orthogonal matrix Q.
-    for i in 1..=N {
-        for j in 1..i {
-            let prj = A.col(i).project(Q.col(j));
-            let mut col = Q.col_mut(i);
-            col -= prj;
-        }
-    }
-
-    // Normalize the columns of Q.
-    (1..=N).for_each(|j| Q.col_mut(j).l2_normalize());
-
-    // Since A=QR and QᵀQ=I, we obtain R with QᵀA.
-    //
-    // Since we know that R is upper-triangular, we can skip the computation
-    // for the lower-triangular portion.
-    let x = |i, j| if i <= j { Q.col(i).dot(A.col(j)) } else { 0. };
-    let R = Mat::from_fn(x);
-
-    (Q, R)
-}
-
-#[test]
-fn gram_schmidt_test() {
-    for _ in 0..REPS {
-        let A = Mat::<5, 5>::rand();
-        let (Q, R) = gram_schmidt(&A);
-        assert_eq_mat!(A, &Q * R, 1e-9);
-
-        // check that the columns of Q have norm == 1.
-        for j in 1..=5 {
-            let norm = Q.col(j).l2_norm();
-            assert!(norm.abs_diff(1.) < 1e-9);
-        }
-    }
-}
 
 /// Evaluate a polynomial in linear time, using Horner's Method.
 /// `p` is read highest-degree first.
@@ -258,19 +216,4 @@ fn rayleigh_quotient_iteration_test() {
             k += 1;
         }
     }
-}
-
-/// The allow_unused sink.
-#[allow(unused)]
-fn demo() {
-    let A = Mat::<5, 5>::rand();
-    let b = Mat::<5, 1>::rand();
-    cholesky(&mut Mat::<1, 1>::zero());
-    gram_schmidt(&A);
-    horners(&vec![], 1.);
-    backward_sub(&A, &b);
-    power_iteration(&A);
-    rayleigh_quotient(&b, &A);
-    inverse_iteration(&A, 0.);
-    rayleigh_quotient_iteration(&A);
 }
