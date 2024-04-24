@@ -2,7 +2,8 @@ use super::*;
 
 impl<const M: usize> Mat<M, 1> {
     /// Standard dot product.
-    pub fn dot(&self, rhs: &Self) -> R {
+    pub fn dot<X: AsRef<Self>>(&self, rhs: X) -> R {
+        let rhs = rhs.as_ref();
         let mut v = self[1] * rhs[1];
         (2..self.nrows() + 1).for_each(|i| v += self[i] * rhs[i]);
         v

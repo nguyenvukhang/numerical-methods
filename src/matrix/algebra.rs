@@ -1,5 +1,5 @@
 use super::Mat;
-use std::ops::{Add, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
 
 /// Core matrix negation. All other implementations will call this.
 impl<const M: usize, const N: usize> Neg for Mat<M, N> {
@@ -20,12 +20,23 @@ impl<const M: usize, const N: usize> Neg for &Mat<M, N> {
 }
 
 /// Core matrix addition. All other implementations will call this.
+impl<const M: usize, const N: usize> AddAssign<&Mat<M, N>> for &mut Mat<M, N> {
+    fn add_assign(&mut self, B: &Mat<M, N>) {
+        (1..=M).for_each(|i| (1..=N).for_each(|j| self[(i, j)] += B[(i, j)]));
+    }
+}
+
+impl<const M: usize, const N: usize> AddAssign<Mat<M, N>> for &mut Mat<M, N> {
+    fn add_assign(&mut self, B: Mat<M, N>) {
+        *self += &B;
+    }
+}
+
 impl<const M: usize, const N: usize> Add<&Mat<M, N>> for Mat<M, N> {
     type Output = Mat<M, N>;
     fn add(mut self, B: &Mat<M, N>) -> Self::Output {
-        for i in 1..=M {
-            (1..=N).for_each(|j| self[(i, j)] += B[(i, j)]);
-        }
+        let mut x = &mut self;
+        x += B;
         self
     }
 }
@@ -52,12 +63,23 @@ impl<const M: usize, const N: usize> Add<&Mat<M, N>> for &Mat<M, N> {
 }
 
 /// Core matrix subtraction. All other implementations will call this.
+impl<const M: usize, const N: usize> SubAssign<&Mat<M, N>> for &mut Mat<M, N> {
+    fn sub_assign(&mut self, B: &Mat<M, N>) {
+        (1..=M).for_each(|i| (1..=N).for_each(|j| self[(i, j)] -= B[(i, j)]));
+    }
+}
+
+impl<const M: usize, const N: usize> SubAssign<Mat<M, N>> for &mut Mat<M, N> {
+    fn sub_assign(&mut self, B: Mat<M, N>) {
+        *self -= &B;
+    }
+}
+
 impl<const M: usize, const N: usize> Sub<&Mat<M, N>> for Mat<M, N> {
     type Output = Mat<M, N>;
     fn sub(mut self, B: &Mat<M, N>) -> Self::Output {
-        for i in 1..=M {
-            (1..=N).for_each(|j| self[(i, j)] -= B[(i, j)]);
-        }
+        let mut x = &mut self;
+        x -= B;
         self
     }
 }

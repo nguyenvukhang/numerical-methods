@@ -8,10 +8,9 @@ impl<const N: usize> Mat<N, N> {
             "A needs to be upper-triangular:\n{self:?}"
         );
         let mut x = b.clone();
-        let n = self.ncols();
-        for k in self.col_iter().rev() {
+        for k in (1..=N).rev() {
             let mut s = b[k];
-            for j in k + 1..n + 1 {
+            for j in k + 1..=N {
                 s -= self[(k, j)] * x[j];
             }
             x[k] = s / self[(k, k)];

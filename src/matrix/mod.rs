@@ -85,10 +85,15 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     }
 
     /// Extract the `j`-th column of the matrix.
-    ///
-    /// FIXME: one day find a way to make this not need to clone.
-    pub fn col(&self, j: usize) -> Mat<M, 1> {
-        Mat { data: [self.data[j - 1]] }
+    pub fn col(&self, j: usize) -> &Mat<M, 1> {
+        let colref = self.data.get(j - 1).unwrap();
+        unsafe { std::mem::transmute(colref) }
+    }
+
+    /// Get mutable reference to the `j`-th column of the matrix.
+    pub fn col_mut(&mut self, j: usize) -> &mut Mat<M, 1> {
+        let colref = self.data.get_mut(j - 1).unwrap();
+        unsafe { std::mem::transmute(colref) }
     }
 
     /// Set the `i`-th row of the matrix.
@@ -256,7 +261,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         match N {
             1 => {
                 let v = self.col(1); // the one and only column.
-                v.dot(&v).sqrt()
+                v.dot(v).sqrt()
             }
             _ => {
                 let (lambda, _) = na::power_iteration(&(self.t() * self));

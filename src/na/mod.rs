@@ -46,26 +46,22 @@ pub fn gram_schmidt<const M: usize, const N: usize>(
     A: &Mat<M, N>,
 ) -> (Mat<M, N>, Mat<N, N>) {
     let mut Q = A.clone();
-    for i in A.col_iter() {
+    for i in 1..=N {
         for j in 1..i {
-            Q.set_col(i, Q.col(i) - A.col(i).project(&Q.col(j)));
+            let prj = A.col(i).project(Q.col(j));
+            let mut col = Q.col_mut(i);
+            col -= prj;
         }
     }
 
     let mut R = Mat::new();
 
     // Normalize the columns of Q.
-    for j in A.col_iter() {
-        let mut c = Q.col(j);
-        c.l2_normalize();
-        Q.set_col(j, c)
-    }
+    (1..=N).for_each(|j| Q.col_mut(j).l2_normalize());
 
-    let n = A.ncols();
-
-    for i in A.col_iter() {
-        for j in i..n + 1 {
-            R[(i, j)] = Q.col(i).dot(&A.col(j))
+    for i in 1..=N {
+        for j in i..=N {
+            R[(i, j)] = Q.col(i).dot(A.col(j))
         }
     }
     (Q, R)
@@ -76,10 +72,10 @@ fn gram_schmidt_test() {
     for _ in 0..REPS {
         let A = Mat::<5, 5>::rand();
         let (Q, R) = gram_schmidt(&A);
-        assert_eq_mat(A, &Q * R, 1e-9);
+        assert_eq_mat!(A, &Q * R, 1e-9);
 
         // check that the columns of Q have norm == 1.
-        for j in Q.col_iter() {
+        for j in 1..=5 {
             let norm = Q.col(j).l2_norm();
             assert!(norm.abs_diff(1.) < 1e-9);
         }
@@ -124,10 +120,9 @@ fn horners_test() {
 pub fn backward_sub<const N: usize>(A: &Mat<N, N>, b: &Mat<N, 1>) -> Mat<N, 1> {
     assert!(A.is_upper_triangular(), "A needs to be upper-triangular:\n{A:?}");
     let mut x = b.clone();
-    let n = A.ncols();
-    for k in A.col_iter().rev() {
+    for k in (1..=N).rev() {
         let mut s = b[k];
-        for j in k + 1..n + 1 {
+        for j in k + 1..=N {
             s -= A[(k, j)] * x[j];
         }
         x[k] = s / A[(k, k)];
@@ -149,13 +144,13 @@ fn backward_sub_test() {
 /// Determine the dominant eigenvector of a matrix, and its
 /// corresponding eigenvalue.
 pub fn power_iteration<const N: usize>(A: &Mat<N, N>) -> (R, Mat<N, 1>) {
-    let mut v = A.col(1);
+    let mut v = A.col(1).clone();
     loop {
         let mut v2 = A * &v;
         v2.l2_normalize();
         if (&v2 - &v).l2_norm() < 1e-15 {
             v = v2;
-            break (v.dot(&(A * &v)), v);
+            break (v.dot(A * &v), v);
         }
         v = v2;
     }
@@ -175,7 +170,7 @@ fn power_iteration_test() {
 /// Useful for calculating the eigenvalue of `v` when it is known that
 /// it is an eigenvector of `A`.
 pub fn rayleigh_quotient<const N: usize>(v: &Mat<N, 1>, A: &Mat<N, N>) -> R {
-    v.dot(&(A * v)) / v.dot(v) // = vᵀAv/vᵀv
+    v.dot(A * v) / v.dot(v) // = vᵀAv/vᵀv
 }
 
 /// Inverse iteration.
@@ -185,7 +180,7 @@ pub fn inverse_iteration<const N: usize>(
     A: &Mat<N, N>,
     a: R,
 ) -> (R, Mat<N, 1>) {
-    let mut v = A.col(1);
+    let mut v = A.col(1).clone();
     let B = A - a * eye();
 
     loop {
@@ -193,7 +188,7 @@ pub fn inverse_iteration<const N: usize>(
         v.l2_normalize();
 
         if v.is_eigenvector_of(&B, 1e-8) {
-            break (v.dot(&(A * &v)), v);
+            break (v.dot(A * &v), v);
         }
     }
 }
@@ -204,7 +199,7 @@ fn inverse_iteration_test() {
     for _ in 0..SMALL_REPS {
         let A = Mat::<N, N>::rand();
         let (lambda, v) = inverse_iteration(&A, A.l1_norm());
-        assert_eq_mat(&A * &v, lambda * &v, 1e-8);
+        assert_eq_mat!(A * &v, lambda * &v, 1e-8);
     }
 }
 
@@ -227,7 +222,7 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
 ) -> Result<(R, Mat<N, 1>)> {
     let mut v = Mat::rand();
     v.l2_normalize();
-    let mut lambda = v.dot(&(A * &v));
+    let mut lambda = v.dot(A * &v);
     let I = eye();
 
     let mut k = 0;
@@ -237,14 +232,12 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
         let B = A - lambda * &I;
         v = B.solve_lls(&v);
         v.l2_normalize();
-        lambda = v.dot(&(A * &v));
+        lambda = v.dot(A * &v);
 
         if k > LIMIT {
             return Err(Error::NoEigenvalues);
         }
         k += 1;
-
-        println!("λ[{k}]: {lambda}, v: {}", v.t());
 
         if v.is_eigenvector_of(&B, 1e-8) {
             break Ok((lambda, v));

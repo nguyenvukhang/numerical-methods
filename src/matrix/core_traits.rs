@@ -8,7 +8,7 @@ impl<const M: usize, const N: usize> fmt::Display for Mat<M, N> {
         writeln!(f, "Matrix")?;
         for i in 1..=M {
             write!(f, "  ")?;
-            for j in self.col_iter() {
+            for j in 1..=N {
                 write!(f, "{:>8.4}", self[(i, j)])?;
             }
             if i < M {

@@ -13,10 +13,10 @@ pub fn householder<const M: usize, const N: usize>(
     let I = eye::<M>();
     let mut Q = I.clone();
 
-    for j in R.col_iter() {
+    for j in 1..=N {
         let s = R[(j, j)].signum();
 
-        let mut R_j = R.col(j);
+        let mut R_j = R.col(j).clone();
 
         (1..j).for_each(|x| R_j[x] = 0.); // zero-out entries before j.
         let nom = R_j.l2_norm();
@@ -32,11 +32,11 @@ pub fn householder<const M: usize, const N: usize>(
         // Rpply the HH transform on the remaining columns.
         for i in j + 1..n + 1 {
             let x = R.col(i);
-            let sub = &x - 2. * &v * (v.transpose() * &x);
+            let sub = x - 2. * &v * (v.transpose() * x);
             (j..m + 1).for_each(|k| R[(k, i)] = sub[(k, 1)]);
         }
 
-        Q = Q * (&I - 2. * &v * &v.transpose());
+        Q = Q * (&I - 2. * &v * v.transpose());
     }
 
     (Q, R)
