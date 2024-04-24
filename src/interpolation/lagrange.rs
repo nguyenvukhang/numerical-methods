@@ -39,7 +39,6 @@ impl<const N: usize> Interpolator<N> for LagrangeInterpolation<N> {
 
 #[test]
 fn lagrange_interpolation_test() {
-    use crate::assert::assert_eq_tol;
     use crate::na::horners;
 
     let xs = Mat::from([[-2., 0., 1., 2.]]).t();
@@ -52,7 +51,7 @@ fn lagrange_interpolation_test() {
         let rand = Mat::<6, 1>::rand();
         for i in 1..=6 {
             let x = rand[i];
-            assert_eq_tol(pl(x), lg.estimate(x), 1e-8);
+            assert_eq_tol!(pl(x), lg.estimate(x), 1e-8);
         }
     }
 }

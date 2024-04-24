@@ -35,7 +35,7 @@ fn cholesky_test() {
             continue;
         }
         let LT = L.transpose();
-        assert_eq_mat(A, L * LT, 1e-15);
+        assert_eq_mat!(A, L * LT, 1e-15);
         i += 1;
     }
 }
@@ -137,7 +137,7 @@ fn backward_sub_test() {
         let A = Mat::<N, N>::rand().upper_triangular();
         let b = Mat::<N, 1>::rand();
         let x = backward_sub(&A, &b);
-        assert_eq_mat(A * x, b, 1e-8);
+        assert_eq_mat!(A * x, b, 1e-8);
     }
 }
 
@@ -162,7 +162,7 @@ fn power_iteration_test() {
     for _ in 0..REPS {
         let A = Mat::<N, N>::rand();
         let (lambda, v) = power_iteration(&A);
-        assert_eq_mat(&A * &v, lambda * v, 1e-10);
+        assert_eq_mat!(&A * &v, lambda * v, 1e-10);
     }
 }
 
