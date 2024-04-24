@@ -18,6 +18,19 @@ impl<const N: usize> Mat<N, N> {
         x
     }
 
+    /// Tranpose in-place; possible since it's a square.
+    pub fn transpose_inplace(&mut self) {
+        for i in 1..=N {
+            for j in 1..i {
+                let a = std::ptr::addr_of_mut!(self[(i, j)]);
+                let b = std::ptr::addr_of_mut!(self[(j, i)]);
+                unsafe {
+                    std::ptr::swap(a, b);
+                }
+            }
+        }
+    }
+
     /// Trace: sum of elements on the diagonal
     pub fn trace(&self) -> R {
         (1..=N).map(|i| self[(i, i)]).sum()
