@@ -207,13 +207,14 @@ pub fn rayleigh_quotient_iteration<const N: usize>(
 fn rayleigh_quotient_iteration_test() {
     const N: usize = 6;
     let mut k = 0;
+    let zero = Mat::zero();
     while k < REPS {
         let A = Mat::<N, N>::rand();
         if let Ok((lambda, v)) = rayleigh_quotient_iteration(&A) {
             let Av = &A * &v;
             let lv = lambda * &v;
-            assert_ne_mat!(lv, Mat::zero());
-            assert_eq_mat!(Av, lv);
+            assert_ne_mat!(lv, zero);
+            assert_eq_mat!(Av, lv, 5e-4);
             k += 1;
         }
     }

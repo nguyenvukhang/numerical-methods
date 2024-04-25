@@ -111,13 +111,11 @@ impl<const M: usize, const N: usize, const P: usize> Mul<&Mat<P, N>>
 {
     type Output = Mat<M, N>;
     fn mul(self, rhs: &Mat<P, N>) -> Self::Output {
-        let mut m = Mat::zero(); // new allocation is inevitable due to dimensions.
-        for i in 1..=M {
-            for j in 1..=N {
-                (1..=P).for_each(|k| m[(i, j)] += self[(i, k)] * rhs[(k, j)]);
-            }
-        }
-        m
+        Mat::from_fn(|i, j| {
+            let mut v = self[(i, 1)] * rhs[(1, j)];
+            (2..=P).for_each(|k| v += self[(i, k)] * rhs[(k, j)]);
+            v
+        })
     }
 }
 

@@ -56,18 +56,6 @@ impl<const M: usize, const N: usize> Mat<M, N> {
         self.transpose()
     }
 
-    pub fn eq<X: AsRef<Self>>(&self, rhs: X, rel_tol: R) -> bool {
-        let rhs = rhs.as_ref();
-        for i in 1..=M {
-            for j in 1..=N {
-                if self[(i, j)].rel_diff(rhs[(i, j)]) > rel_tol {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-
     pub fn row_iter(&self) -> RangeInclusive<usize> {
         1..=M
     }
@@ -180,6 +168,18 @@ impl<const M: usize, const N: usize> Mat<M, N> {
             }
         }
         false
+    }
+
+    pub fn eq<X: AsRef<Self>>(&self, rhs: X, rel_tol: R) -> bool {
+        let rhs = rhs.as_ref();
+        for i in 1..=M {
+            for j in 1..=N {
+                if self[(i, j)].rel_diff(rhs[(i, j)]) > rel_tol {
+                    return false;
+                }
+            }
+        }
+        true
     }
 
     /// Execute a QR decomposition via Householder reflections.
