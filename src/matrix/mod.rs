@@ -48,9 +48,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
     }
 
     pub fn transpose(&self) -> Mat<N, M> {
-        let mut A = Mat::new();
-        (1..=M).for_each(|i| (1..=N).for_each(|j| A[(j, i)] = self[(i, j)]));
-        A
+        Mat::from_fn(|i, j| self[(j, i)])
     }
 
     /// (alias: tranpose())
@@ -80,9 +78,7 @@ impl<const M: usize, const N: usize> Mat<M, N> {
 
     /// Extract the `i`-th row of the matrix.
     pub fn row(&self, i: usize) -> Mat<1, N> {
-        let mut m = Mat::new();
-        (1..=N).for_each(|j| m[(1, j)] = self[(i, j)]);
-        m
+        Mat::from_fn(|_, j| self[(i, j)])
     }
 
     pub fn col_raw(&self, j: usize) -> &[R; M] {
